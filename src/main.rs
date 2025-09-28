@@ -1,3 +1,4 @@
+use anyhow::{Result, bail};
 use clap::{Parser, ValueEnum};
 use std::io::stdin;
 use std::iter;
@@ -23,19 +24,24 @@ struct Args {
     pub case: Case,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let args = Args::parse();
 
     for line in stdin().lines() {
-        let line = line?;
-        let tokens = tokenize(&line);
-        println!("{}", recombine(&tokens, args.case));
+        match tokenize(line?.as_str()) {
+            Ok(tokens) => println!("{}", recombine(&tokens, args.case)),
+            Err(e) => eprintln!("{e}"),
+        }
     }
 
     Ok(())
 }
 
-fn tokenize(input: &str) -> Vec<String> {
+fn tokenize(input: &str) -> Result<Vec<String>> {
+    if input.chars().any(|ch| !ch.is_ascii()) {
+        bail!("skipping non-ascii input '{input}'")
+    }
+
     let split_indices: Vec<usize> = input
         .chars()
         .zip(input.char_indices().skip(1))
@@ -57,7 +63,7 @@ fn tokenize(input: &str) -> Vec<String> {
     }
     tokens.push(normalize(input));
     tokens.reverse();
-    tokens
+    Ok(tokens)
 }
 
 fn recombine(tokens: &[String], format: Case) -> String {
