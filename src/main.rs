@@ -106,13 +106,13 @@ fn recombine(tokens: &[String], format: Case) -> String {
         Case::LowerCamel => {
             if let Some((first, rest)) = tokens.split_first() {
                 iter::once(first.to_owned())
-                    .chain(rest.into_iter().map(|t| capitalize_first(t)))
+                    .chain(rest.iter().map(|t| capitalize_first(t)))
                     .collect()
             } else {
                 String::new()
             }
         }
-        Case::UpperCamel => tokens.into_iter().map(|t| capitalize_first(t)).collect(),
+        Case::UpperCamel => tokens.iter().map(|t| capitalize_first(t)).collect(),
         Case::Snake => tokens.join("_"),
         Case::ScreamingSnake => tokens.join("_").to_ascii_uppercase(),
         Case::Kebab => tokens.join("-"),
@@ -122,8 +122,8 @@ fn recombine(tokens: &[String], format: Case) -> String {
 }
 
 fn should_split(left: char, right: char) -> bool {
-    return left.is_ascii_lowercase() && right.is_ascii_uppercase()
-        || !is_terminator(left) && is_terminator(right);
+    left.is_ascii_lowercase() && right.is_ascii_uppercase()
+        || !is_terminator(left) && is_terminator(right)
 }
 
 fn is_terminator(c: char) -> bool {
