@@ -1,6 +1,11 @@
 [package]
 name = "change-case"
-version = "0.1.0"
+repository = "https://github.com/skubalj/change-case"
+version = "0.1.1"
+authors = ["Joseph Skubal"]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+description = "Command line identifier case conversions"
 edition = "2024"
 
 [profile.release]

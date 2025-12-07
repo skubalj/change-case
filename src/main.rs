@@ -1,6 +1,24 @@
+/*
+change-case: Command Line Case Conversions
+Copyright (C) 2025 Joseph Skubal
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 use anyhow::{Result, bail};
 use clap::{Parser, ValueEnum};
-use std::io::stdin;
+use std::io::{self, IsTerminal};
 use std::iter;
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -11,23 +29,40 @@ enum Case {
     ScreamingSnake,
     Kebab,
     ScreamingKebab,
+    Words,
 }
 
-/// Read newline delimited names from stdin, transform to the given case and write them to stdout
+/// Read newline delimited names from stdin, transform to the given case, and write them to stdout
 ///
 /// If you are running the program in "interactive" mode (you did not pipe input into the program),
 /// use Ctrl+D to close stdin and quit.
 #[derive(Parser)]
-#[command(version, about)]
+#[command(version, about, author)]
+#[command(after_long_help = "Copyright (C) 2025 Joseph Skubal
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.")]
 struct Args {
-    /// The case to be read
+    /// The desired output case
     pub case: Case,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    for line in stdin().lines() {
+    let stdin = io::stdin();
+    if stdin.is_terminal() {
+        eprintln!("Press Ctrl+D to exit")
+    }
+
+    for line in stdin.lines() {
         match tokenize(line?.as_str()) {
             Ok(tokens) => println!("{}", recombine(&tokens, args.case)),
             Err(e) => eprintln!("{e}"),
@@ -38,7 +73,7 @@ fn main() -> Result<()> {
 }
 
 fn tokenize(input: &str) -> Result<Vec<String>> {
-    if input.chars().any(|ch| !ch.is_ascii()) {
+    if !input.is_ascii() {
         bail!("skipping non-ascii input '{input}'")
     }
 
@@ -81,7 +116,8 @@ fn recombine(tokens: &[String], format: Case) -> String {
         Case::Snake => tokens.join("_"),
         Case::ScreamingSnake => tokens.join("_").to_ascii_uppercase(),
         Case::Kebab => tokens.join("-"),
-        Case::ScreamingKebab => tokens.join("-").to_uppercase(),
+        Case::ScreamingKebab => tokens.join("-").to_ascii_uppercase(),
+        Case::Words => tokens.join(" "),
     }
 }
 
